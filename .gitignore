@@ -26,6 +26,8 @@ Thumbs.db
 images_data/
 *.jpg
 *.png
+!assets/*.jpg
+!assets/*.png
 
 # Environment variables
 .env
