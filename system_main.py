@@ -630,22 +630,32 @@ class SmartHomeSystem(QWidget):
             self.log_message(f"❌ 串口连接失败 ({target_port}): {e}")
             self.ser = None
 
+    def reconnect_serial(self):
+        """断线重连"""
+        self.log_message("尝试重新连接串口...")
+        if self.ser and self.ser.is_open:
+            try:
+                self.ser.close()
+            except Exception:
+                pass
+        self.ser = None
+        self.init_serial()
+
     def send_serial_command(self, command_bytes):
-        """发送串口指令"""
+        """发送串口指令，断线时自动重连"""
         if self.ser and self.ser.is_open:
             try:
                 self.ser.write(command_bytes)
-                # 记录日志 (解码显示)
                 try:
                     cmd_str = command_bytes.decode('utf-8')
-                except:
+                except Exception:
                     cmd_str = str(command_bytes)
                 self.log_message(f"串口发送: {cmd_str}")
             except Exception as e:
-                self.log_message(f"串口发送异常: {e}")
+                self.log_message(f"串口发送异常: {e}，尝试重连...")
+                self.reconnect_serial()
         else:
-            # 可选：如果需要在未连接时提示，可在此添加日志
-            pass
+            self.reconnect_serial()
 
     def closeEvent(self, event):
         self.thread.stop()
